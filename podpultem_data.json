@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "version": "1.0",
+    "currency_out": "CZK",
+    "rates": {
+      "CZK": 1,
+      "EUR": 25.0,
+      "USD": 23.0,
+      "CNY": 3.2
+    },
+    "default_margin_pct": 25
+  },
+  "products": [
+    {
+      "id": "demo-oversize-tee",
+      "title": "Tričko Oversize – černé",
+      "url": "https://example.com/product/demo-oversize-tee",
+      "image": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800",
+      "price": {
+        "value": 699,
+        "currency": "CZK"
+      },
+      "availability": "Skladem",
+      "variants": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "sku": "TEE-OVR-BLK",
+      "source": "demo"
+    },
+    {
+      "id": "1688-917518508187",
+      "title": "Produkt z 1688 (ID 917518508187)",
+      "url": "https://detail.1688.com/offer/917518508187.html",
+      "image": "https://via.placeholder.com/800x1000?text=1688+Product",
+      "price": {
+        "value": null,
+        "currency": "CNY"
+      },
+      "availability": "—",
+      "variants": [],
+      "sku": "",
+      "source": "1688"
+    }
+  ]
+}
