@@ -42,6 +42,90 @@
       "variants": [],
       "sku": "",
       "source": "1688"
+    },
+    {
+      "id": "1688-https://detail.1688.com/offer/9175185081",
+      "title": "Produkt z 1688 (ID https://detail.1688.com/offer/9175185081)",
+      "url": "https://detail.1688.com/offer/917518508187.html",
+      "image": "https://via.placeholder.com/800x1000?text=1688+Product",
+      "price": {
+        "value": null,
+        "currency": "CNY"
+      },
+      "availability": "—",
+      "variants": [],
+      "sku": "",
+      "source": "1688"
+    },
+    {
+      "id": "1688-https://detail.1688.com/offer/8936992730",
+      "title": "Produkt z 1688 (ID https://detail.1688.com/offer/8936992730)",
+      "url": "https://detail.1688.com/offer/893699273004.html",
+      "image": "https://via.placeholder.com/800x1000?text=1688+Product",
+      "price": {
+        "value": null,
+        "currency": "CNY"
+      },
+      "availability": "—",
+      "variants": [],
+      "sku": "",
+      "source": "1688"
+    },
+    {
+      "id": "1688-https://detail.1688.com/offer/9363189187",
+      "title": "Produkt z 1688 (ID https://detail.1688.com/offer/9363189187)",
+      "url": "https://detail.1688.com/offer/936318918799.html",
+      "image": "https://via.placeholder.com/800x1000?text=1688+Product",
+      "price": {
+        "value": null,
+        "currency": "CNY"
+      },
+      "availability": "—",
+      "variants": [],
+      "sku": "",
+      "source": "1688"
+    },
+    {
+      "id": "1688-https://detail.1688.com/offer/7885683090",
+      "title": "Produkt z 1688 (ID https://detail.1688.com/offer/7885683090)",
+      "url": "https://detail.1688.com/offer/788568309027.html",
+      "image": "https://via.placeholder.com/800x1000?text=1688+Product",
+      "price": {
+        "value": null,
+        "currency": "CNY"
+      },
+      "availability": "—",
+      "variants": [],
+      "sku": "",
+      "source": "1688"
+    },
+    {
+      "id": "1688-https://detail.1688.com/offer/9309701047",
+      "title": "Produkt z 1688 (ID https://detail.1688.com/offer/9309701047)",
+      "url": "https://detail.1688.com/offer/930970104777.html",
+      "image": "https://via.placeholder.com/800x1000?text=1688+Product",
+      "price": {
+        "value": null,
+        "currency": "CNY"
+      },
+      "availability": "—",
+      "variants": [],
+      "sku": "",
+      "source": "1688"
+    },
+    {
+      "id": "1688-https://detail.1688.com/offer/8586529646",
+      "title": "Produkt z 1688 (ID https://detail.1688.com/offer/8586529646)",
+      "url": "https://detail.1688.com/offer/858652964634.html",
+      "image": "https://via.placeholder.com/800x1000?text=1688+Product",
+      "price": {
+        "value": null,
+        "currency": "CNY"
+      },
+      "availability": "—",
+      "variants": [],
+      "sku": "",
+      "source": "1688"
     }
   ]
 }
