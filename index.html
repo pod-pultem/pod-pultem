@@ -22,6 +22,25 @@
     </div>
   </div>
 
+  <script>
+(()=>{ 
+  const ACCESS_TOKEN='shadow2025';
+  const qs=new URLSearchParams(location.search);
+  const gate=document.getElementById('gate');
+  const app=document.getElementById('app');
+  const pass=document.getElementById('pass');
+  const btn=document.getElementById('enterBtn');
+  const msg=document.getElementById('gateMsg');
+  function allow(){ gate.classList.add('hidden'); app.classList.remove('hidden'); }
+  if (qs.get('t')===ACCESS_TOKEN || sessionStorage.getItem('ppt_token')===ACCESS_TOKEN) allow();
+  btn.addEventListener('click', ()=>{
+    if ((pass.value||'').trim()===ACCESS_TOKEN){ sessionStorage.setItem('ppt_token', ACCESS_TOKEN); allow(); }
+    else msg.classList.remove('hidden');
+  });
+  pass.addEventListener('keydown', e=>{ if(e.key==='Enter') btn.click(); });
+})();
+</script>
+
   <!-- App -->
   <div id="app" class="max-w-6xl mx-auto p-4 md:p-8 hidden">
     <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
