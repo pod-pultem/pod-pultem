@@ -330,8 +330,15 @@
       lines.push(`• ${it.name} (${it.brand}) ${it.size?`[${it.size}]`:''} × ${it.qty} – ${price}`);
       if (it.url) lines.push(`   ${it.url}`);
     });
-    return lines.join('\n');
-    
+    return lines.join('
+');
+  }`);
+    state.basket.forEach(it=>{
+      const price = Number.isFinite(it.priceCZK) ? currency(it.priceCZK) : 'Na dotaz';
+      lines.push(`• ${it.name} (${it.brand}) ${it.size?`[${it.size}]`:''} × ${it.qty} – ${price}`);
+      if (it.url) lines.push(`   ${it.url}`);
+    });
+    return lines.join('
 ');
   }
 
