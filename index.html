@@ -330,7 +330,8 @@
       lines.push(`• ${it.name} (${it.brand}) ${it.size?`[${it.size}]`:''} × ${it.qty} – ${price}`);
       if (it.url) lines.push(`   ${it.url}`);
     });
-    return lines.join('
+    return lines.join('\n');
+    
 ');
   }
 
