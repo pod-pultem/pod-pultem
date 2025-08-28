@@ -6,62 +6,27 @@
   <title>PodPultem – Soukromý katalog</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <meta name="description" content="Soukromý katalog produktů – přístup jen přes tajný odkaz." />
-  <!-- Strict CSP -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; base-uri 'none'; form-action 'self' https://wa.me; frame-ancestors 'none'; object-src 'none'; connect-src 'self' https:; img-src 'self' https: data:; script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
 </head>
 <body class="bg-neutral-950 text-neutral-100 min-h-screen">
- <!-- GATE: začátek -->
-<div id="gate" class="fixed inset-0 flex items-center justify-center bg-neutral-950 p-4">
-  <div class="w-full max-w-md rounded-2xl bg-neutral-900 p-6 shadow-xl border border-neutral-800">
-    <h1 class="text-2xl font-semibold mb-2">Vstup jen pro zasvěcené</h1>
-    <p class="text-neutral-400 mb-4">Tenhle katalog je neveřejný. Otevře se jen s platným odkazem nebo heslem.</p>
-    <label class="block text-sm mb-2" for="pass">Heslo / token</label>
-    <input id="pass" type="password" class="w-full px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-500" placeholder="Zadej heslo" />
-    <button id="enterBtn" type="button" class="mt-4 w-full py-2 rounded-xl bg-white/10 hover:bg-white/20 transition">Vstoupit</button>
-    <p id="gateMsg" class="text-rose-400 text-sm mt-3 hidden">Neplatné heslo / token.</p>
+  <!-- GATE -->
+  <div id="gate" class="fixed inset-0 flex items-center justify-center bg-neutral-950 p-4">
+    <div class="w-full max-w-md rounded-2xl bg-neutral-900 p-6 shadow-xl border border-neutral-800">
+      <h1 class="text-2xl font-semibold mb-2">Vstup jen pro zasvěcené</h1>
+      <p class="text-neutral-400 mb-4">Neveřejný katalog. Zadej heslo nebo použij odkaz s tokenem.</p>
+      <label class="block text-sm mb-2" for="pass">Heslo / token</label>
+      <input id="pass" type="password" class="w-full px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-500" placeholder="Zadej heslo" />
+      <button id="enterBtn" type="button" class="mt-4 w-full py-2 rounded-xl bg-white/10 hover:bg-white/20 transition">Vstoupit</button>
+      <p id="gateMsg" class="text-rose-400 text-sm mt-3 hidden">Neplatné heslo / token.</p>
+    </div>
   </div>
-</div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  const ACCESS_TOKEN = 'shadow2025';
-  const qs = new URLSearchParams(location.search);
-  const gate = document.getElementById('gate');
-  const app  = document.getElementById('app');
-  const pass = document.getElementById('pass');
-  const btn  = document.getElementById('enterBtn');
-  const msg  = document.getElementById('gateMsg');
-
-  function allow(){ gate.classList.add('hidden'); app.classList.remove('hidden'); }
-  try {
-    if (qs.get('t') === ACCESS_TOKEN || sessionStorage.getItem('ppt_token') === ACCESS_TOKEN) {
-      allow();
-      return;
-    }
-    btn.addEventListener('click', function(){
-      const val = (pass.value || '').trim();
-      if (val === ACCESS_TOKEN){
-        sessionStorage.setItem('ppt_token', ACCESS_TOKEN);
-        allow();
-      } else {
-        msg.classList.remove('hidden');
-      }
-    });
-    pass.addEventListener('keydown', function(e){ if (e.key === 'Enter') btn.click(); });
-  } catch(e) {
-    // při chybě radši neblokovat UI
-    console.error('gate error', e);
-  }
-});
-</script>
-<!-- GATE: konec -->
-
-  <!-- App -->
+  <!-- APP -->
   <div id="app" class="max-w-6xl mx-auto p-4 md:p-8 hidden">
     <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
       <div>
         <h1 class="text-3xl md:text-4xl font-black tracking-tight">PodPultem</h1>
-        <p class="text-neutral-400">Soukromý katalog • sdílej jen s lidmi, kterým věříš 😉</p>
+        <p class="text-neutral-400">Soukromý katalog • sdílej jen s lidmi, kterým věříš</p>
       </div>
       <div class="flex flex-col sm:flex-row gap-3">
         <input id="search" class="px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-600" placeholder="Hledat…" />
@@ -74,9 +39,8 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
     </header>
 
-    <main class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="grid"></main>
+    <main id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></main>
 
-    <!-- Drawer / Basket -->
     <div class="fixed bottom-4 right-4">
       <button id="basketBtn" class="relative px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-neutral-800 shadow-lg">
         Košík / poptávka
@@ -99,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
     </div>
 
-    <!-- DETAIL MODAL -->
+    <!-- DETAIL -->
     <div id="detail" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4">
       <div class="w-full max-w-5xl bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl">
         <div class="flex items-center justify-between p-4 border-b border-neutral-800">
@@ -115,15 +79,12 @@ document.addEventListener('DOMContentLoaded', function(){
             <div class="text-neutral-400" id="dBrand"></div>
             <div class="text-2xl font-bold" id="dName"></div>
             <div class="text-lg" id="dPrice"></div>
-
             <div class="flex items-center gap-2">
               <label for="dSize" class="text-sm text-neutral-400">Velikost</label>
               <select id="dSize" class="px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700"></select>
               <button id="dAdd" class="ml-auto px-4 py-2 rounded-xl bg-emerald-500/90 hover:bg-emerald-500 text-neutral-900 font-semibold">Přidat do košíku</button>
             </div>
-
             <div class="text-sm text-neutral-400">Zdroj: <a id="dUrl" href="#" target="_blank" class="underline">Odkaz na produkt</a></div>
-
             <div>
               <h4 class="font-semibold mb-1">Tabulka velikostí</h4>
               <div id="dSizesTbl" class="text-sm overflow-x-auto border border-neutral-800 rounded-xl"></div>
@@ -133,268 +94,216 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
     </div>
 
-    <footer class="mt-10 text-center text-neutral-500 text-sm">
-      © <span id="year"></span> PodPultem • Neveřejný katalog
-    </footer>
+    <footer class="mt-10 text-center text-neutral-500 text-sm">© <span id="year"></span> PodPultem</footer>
   </div>
 
 <script>
-  // ====== CONFIG ======
-  const ACCESS_TOKEN = "shadow2025"; // heslo
-  const FX = { CNY_TO_CZK: 3.2, MARKUP: 1.6, SHIPPING_CZK: 0 }; // přepočet CNY→CZK
-  const priceFromCNY = (cny) => Math.round((Number(cny||0) * FX.CNY_TO_CZK * FX.MARKUP + FX.SHIPPING_CZK) / 10) * 10;
+// ===== BASIC LOGIN (robustní, bez závislosti na zbytku) =====
+(function(){
+  var ACCESS_TOKEN='shadow2025';
+  var qs=new URLSearchParams(location.search);
+  var gate=document.getElementById('gate');
+  var app=document.getElementById('app');
+  var pass=document.getElementById('pass');
+  var btn=document.getElementById('enterBtn');
+  var msg=document.getElementById('gateMsg');
+  function allow(){ gate.classList.add('hidden'); app.classList.remove('hidden'); }
+  if(qs.get('t')===ACCESS_TOKEN || sessionStorage.getItem('ppt_token')===ACCESS_TOKEN){ allow(); }
+  btn.addEventListener('click', function(){
+    var v=(pass.value||'').trim();
+    if(v===ACCESS_TOKEN){ sessionStorage.setItem('ppt_token',ACCESS_TOKEN); allow(); }
+    else msg.classList.remove('hidden');
+  });
+  pass.addEventListener('keydown', function(e){ if(e.key==='Enter') btn.click(); });
+})();
 
-  const RAINDROP_COLLECTIONS = {
-    "panska-tricka": "58913469",
-    "mikiny": "58914294",
-    "damska-tricka": "58961797",
-    "opasky": "58938633",
-    "kratasy": "58991599",
-    "kratase": "58914666",
-    "bundy": "58914670",
-    "batohy": "58914676",
-    "kosile": "58914766",
-    "svetry": "58915821",
-    "ponozky-tenisky": "58915645",
-    "cestovni-tasky": "58915678",
-    "kalhoty": "58937229",
-    "penezenky": "58930968",
-    "krabice": "58959728",
-    "dlouhy-rukav": "58961878",
-    "damske-tricka-dlouhy-rukav": "59011605",
-    "damske-mikiny-svetry": "59011650",
-    "damske-bundy-podzim-jaro": "59011725",
-    "saty": "59020639",
-    "destniky": "59036714",
-    "damske-kratase": "59036804"
-  };
+// ===== CONFIG =====
+var ACCESS_TOKEN='shadow2025';
+var FX={ CNY_TO_CZK:3.2, MARKUP:1.6, SHIPPING_CZK:0 };
+function priceFromCNY(cny){ return Math.round((Number(cny||0)*FX.CNY_TO_CZK*FX.MARKUP+FX.SHIPPING_CZK)/10)*10; }
+var RAINDROP_COLLECTIONS={
+  'panska-tricka':'58913469','mikiny':'58914294','damska-tricka':'58961797','opasky':'58938633','kratasy':'58991599','kratase':'58914666','bundy':'58914670','batohy':'58914676','kosile':'58914766','svetry':'58915821','ponozky-tenisky':'58915645','cestovni-tasky':'58915678','kalhoty':'58937229','penezenky':'58930968','krabice':'58959728','dlouhy-rukav':'58961878','damske-tricka-dlouhy-rukav':'59011605','damske-mikiny-svetry':'59011650','damske-bundy-podzim-jaro':'59011725','saty':'59020639','destniky':'59036714','damske-kratase':'59036804'};
 
-  // ====== HELPERS ======
-  const qs = new URLSearchParams(location.search);
-  const fetchJSON = async (url) => { try { const r = await fetch(url); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json(); } catch(e){ console.warn('fetchJSON', url, e); return null; } };
-  const currency = (n)=> new Intl.NumberFormat('cs-CZ', { style:'currency', currency:'CZK' }).format(n);
-  const isScreenshot = (u)=> /rdl\.ink\/render/i.test(String(u||''));
+// ===== HELPERS =====
+function fetchJSON(url){ return fetch(url).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).catch(function(e){ console.warn('fetchJSON',url,e); return null; }); }
+function currency(n){ return new Intl.NumberFormat('cs-CZ',{style:'currency',currency:'CZK'}).format(n); }
+function isScreenshot(u){ return /rdl\.ink\/render/i.test(String(u||'')); }
+function normalize(p){
+  var images=(Array.isArray(p.images)&&p.images.length)?p.images:(p.image?[p.image]:[]);
+  var url=p.url||p.link||p.source||null;
+  var priceCNY=Number(p.priceCNY!=null?p.priceCNY:(p.price_yuan!=null?p.price_yuan:(p.price_cny!=null?p.price_cny:(p.cny!=null?p.cny:0))))||null;
+  var priceCZK=Number.isFinite(p.priceCZK)?p.priceCZK:(priceCNY?priceFromCNY(priceCNY):null);
+  var sizes=Array.isArray(p.sizes)?p.sizes:[];
+  var id=p.id||p._id||(url?btoa(url).slice(0,10):Math.random().toString(36).slice(2));
+  return { id:id, name:p.name||p.title||'', brand:p.brand||'', tags:p.tags||[], images:images, image:images[0]||'', url:url, priceCNY:priceCNY, priceCZK:priceCZK, sizes:sizes, sizeTableUrl:p.sizeTableUrl||p.sizesUrl||null };
+}
+function upgradeImage(p){
+  if(!p||!p.url||!isScreenshot(p.image)) return Promise.resolve(p.image);
+  return fetch('/api/sizechart?url='+encodeURIComponent(p.url)+'&token='+ACCESS_TOKEN)
+    .then(function(r){return r.json();})
+    .then(function(j){ var real=(j.images||[]).find(function(x){return !isScreenshot(x);}); return real||p.image; })
+    .catch(function(){ return p.image; });
+}
 
-  function normalize(p){
-    const images = Array.isArray(p.images) && p.images.length ? p.images : (p.image ? [p.image] : []);
-    const url = p.url || p.link || p.source || null;
-    const priceCNY = Number(p.priceCNY ?? p.price_yuan ?? p.price_cny ?? p.cny ?? 0) || null;
-    const priceCZK = Number.isFinite(p.priceCZK) ? p.priceCZK : (priceCNY ? priceFromCNY(priceCNY) : null);
-    const sizes = Array.isArray(p.sizes) ? p.sizes : [];
-    const id = p.id || p._id || (url ? btoa(url).slice(0,10) : Math.random().toString(36).slice(2));
-    return { id, name: p.name||p.title||'', brand: p.brand||'', tags: p.tags||[], images, image: images[0]||'', url, priceCNY, priceCZK, sizes, sizeTableUrl: p.sizeTableUrl||p.sizesUrl||null };
-  }
+// ===== STATE =====
+var grid=document.getElementById('grid');
+var search=document.getElementById('search');
+var sort=document.getElementById('sort');
+var basketBtn=document.getElementById('basketBtn');
+var drawer=document.getElementById('drawer');
+var closeDrawer=document.getElementById('closeDrawer');
+var basketList=document.getElementById('basketList');
+var basketCount=document.getElementById('basketCount');
+var contactField=document.getElementById('contactField');
+var sendWA=document.getElementById('sendWA');
+var copyMsg=document.getElementById('copyMsg');
+var detail=document.getElementById('detail');
+var dClose=document.getElementById('dClose');
+var dTitle=document.getElementById('dTitle');
+var dBrand=document.getElementById('dBrand');
+var dName=document.getElementById('dName');
+var dPrice=document.getElementById('dPrice');
+var dImage=document.getElementById('dImage');
+var dThumbs=document.getElementById('dThumbs');
+var dUrl=document.getElementById('dUrl');
+var dSize=document.getElementById('dSize');
+var dAdd=document.getElementById('dAdd');
+var dSizesTbl=document.getElementById('dSizesTbl');
+var state={ q:'', sort:'relevance', items:[], basket:[], current:null };
 
-  async function loadProductsFromRaindrop(){
-    const ids = Object.values(RAINDROP_COLLECTIONS);
-    const out = [];
-    for (const id of ids){
-      const data = await fetchJSON(`/api/raindrop?collections=${encodeURIComponent(id)}&token=${encodeURIComponent(ACCESS_TOKEN)}`);
-      const arr = Array.isArray(data?.items) ? data.items : Array.isArray(data?.products) ? data.products : [];
-      for (const raw of arr) out.push(normalize(raw));
-    }
-    return out;
-  }
+function render(){
+  var q=state.q.toLowerCase();
+  var items=state.items.filter(function(p){
+    return (p.name||'').toLowerCase().indexOf(q)>-1 || (p.brand||'').toLowerCase().indexOf(q)>-1 || (p.tags||[]).some(function(t){return String(t).toLowerCase().indexOf(q)>-1;});
+  });
+  if(state.sort==='priceAsc') items.sort(function(a,b){return (a.priceCZK||Infinity)-(b.priceCZK||Infinity);});
+  if(state.sort==='priceDesc') items.sort(function(a,b){return (b.priceCZK||-Infinity)-(a.priceCZK||-Infinity);});
+  if(state.sort==='newest') items.sort(function(a,b){return String(b.id)>String(a.id)?1:-1;});
 
-  async function upgradeImage(p){
-    if (!p?.url || !isScreenshot(p.image)) return p.image;
-    try{
-      const r = await fetch(`/api/sizechart?url=${encodeURIComponent(p.url)}&token=${ACCESS_TOKEN}`);
-      const j = await r.json();
-      const real = (j.images||[]).find(x=>!isScreenshot(x));
-      return real || p.image;
-    }catch{ return p.image; }
-  }
+  var html='';
+  items.forEach(function(p){
+    html+= '<article class="rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow">'
+         +   '<button class="w-full text-left" data-detail="'+p.id+'">'
+         +     '<div class="aspect-[4/3]"><img src="'+p.image+'" alt="'+(p.name||'').replace(/"/g,'&quot;')+'" loading="lazy" data-id="'+p.id+'" class="w-full h-full object-cover"/></div>'
+         +   '</button>'
+         +   '<div class="p-4">'
+         +     '<div class="text-sm text-neutral-400">'+(p.brand||'')+'</div>'
+         +     '<h3 class="text-lg font-semibold">'+(p.name||'')+'</h3>'
+         +     '<div class="flex items-center justify-between pt-1">'
+         +       '<span class="font-bold">'+(Number.isFinite(p.priceCZK)?currency(p.priceCZK):'Na dotaz')+'</span>'
+         +       '<div class="flex gap-2">'
+         +         '<button data-id="'+p.id+'" class="addBtn text-xs px-3 py-1.5 rounded-lg bg-emerald-500/90 hover:bg-emerald-500 text-neutral-900 font-semibold">Přidat</button>'
+         +         '<button data-detail="'+p.id+'" class="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20">Detail</button>'
+         +       '</div>'
+         +     '</div>'
+         +   '</div>'
+         + '</article>';
+  });
+  grid.innerHTML=html;
 
-  // ====== GATE / ACCESS ======
-  const token = qs.get('t') || sessionStorage.getItem('ppt_token');
-  const app = document.getElementById('app');
-  const gate = document.getElementById('gate');
-  const passInput = document.getElementById('pass');
-  const enterBtn = document.getElementById('enterBtn');
-  const gateMsg = document.getElementById('gateMsg');
-  function allowIn(){ gate.classList.add('hidden'); app.classList.remove('hidden'); }
-  if (token === ACCESS_TOKEN) { allowIn(); }
-  enterBtn.addEventListener('click', ()=>{ if (passInput.value.trim() === ACCESS_TOKEN){ sessionStorage.setItem('ppt_token', ACCESS_TOKEN); allowIn(); } else gateMsg.classList.remove('hidden'); });
-  passInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') enterBtn.click(); });
+  items.forEach(function(p){
+    var img=grid.querySelector('img[data-id="'+p.id+'"]');
+    if(img) upgradeImage(p).then(function(u){ if(u) img.src=u; });
+  });
 
-  // ====== APP STATE & UI ======
-  const grid = document.getElementById('grid');
-  const search = document.getElementById('search');
-  const sort = document.getElementById('sort');
-  const basketBtn = document.getElementById('basketBtn');
-  const drawer = document.getElementById('drawer');
-  const closeDrawer = document.getElementById('closeDrawer');
-  const basketList = document.getElementById('basketList');
-  const basketCount = document.getElementById('basketCount');
-  const contactField = document.getElementById('contactField');
-  const sendWA = document.getElementById('sendWA');
-  const copyMsg = document.getElementById('copyMsg');
+  Array.prototype.forEach.call(grid.querySelectorAll('.addBtn'), function(btn){ btn.onclick=function(){ addToBasket(btn.getAttribute('data-id')); }; });
+  Array.prototype.forEach.call(grid.querySelectorAll('[data-detail]'), function(el){ el.onclick=function(){ openDetail(el.getAttribute('data-detail')); }; });
+}
 
-  const detail = document.getElementById('detail');
-  const dClose = document.getElementById('dClose');
-  const dTitle = document.getElementById('dTitle');
-  const dBrand = document.getElementById('dBrand');
-  const dName = document.getElementById('dName');
-  const dPrice = document.getElementById('dPrice');
-  const dImage = document.getElementById('dImage');
-  const dThumbs = document.getElementById('dThumbs');
-  const dUrl = document.getElementById('dUrl');
-  const dSize = document.getElementById('dSize');
-  const dAdd = document.getElementById('dAdd');
-  const dSizesTbl = document.getElementById('dSizesTbl');
+function renderBasket(){
+  if(!state.basket.length){ basketList.innerHTML='<div class="text-neutral-400">Košík je prázdný.</div>'; return; }
+  var html='';
+  state.basket.forEach(function(it){
+    html+= '<div class="flex items-center gap-3 p-2 rounded-xl bg-neutral-800 border border-neutral-700">'
+         +   '<img src="'+(it.image||'')+'" class="w-14 h-14 object-cover rounded-lg" loading="lazy"/>'
+         +   '<div class="flex-1">'
+         +     '<div class="text-sm text-neutral-400">'+(it.brand||'')+'</div>'
+         +     '<div>'+ (it.name||'') + (it.size ? ' • '+it.size : '') + '</div>'
+         +     '<div>'+ (Number.isFinite(it.priceCZK)?currency(it.priceCZK):'Na dotaz') +'</div>'
+         +   '</div>'
+         + '</div>';
+  });
+  basketList.innerHTML=html;
+}
 
-  let state = { q: '', sort: 'relevance', items: [], basket: [], current: null };
+function addToBasket(id, chosenSize){
+  var prod=state.items.find(function(x){return String(x.id)===String(id);});
+  if(!prod) return;
+  var key=id+(chosenSize?('@'+chosenSize):'');
+  if(!state.basket.find(function(x){return x.key===key;})) state.basket.push(Object.assign({ key:key, size:chosenSize||null, qty:1 }, prod));
+  basketCount.textContent=String(state.basket.length);
+  renderBasket();
+}
 
-  function render(){
-    const q = state.q.toLowerCase();
-    let items = state.items.filter(p =>
-      (p.name || '').toLowerCase().includes(q) ||
-      (p.brand || '').toLowerCase().includes(q) ||
-      (p.tags || []).some(t => String(t).toLowerCase().includes(q))
-    );
-
-    if (state.sort === 'priceAsc') items.sort((a,b) => (a.priceCZK??Infinity) - (b.priceCZK??Infinity));
-    if (state.sort === 'priceDesc') items.sort((a,b) => (b.priceCZK??-Infinity) - (a.priceCZK??-Infinity));
-    if (state.sort === 'newest') items.sort((a,b) => (String(b.id) > String(a.id) ? 1 : -1));
-
-    grid.innerHTML = items.map(p => `
-      <article class="rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow">
-        <button class="w-full text-left" data-detail="${p.id}">
-          <div class="aspect-[4/3]"><img src="${p.image}" alt="${(p.name||'').replace(/"/g,'&quot;')}" loading="lazy" data-id="${p.id}" class="w-full h-full object-cover"/></div>
-        </button>
-        <div class="p-4">
-          <div class="text-sm text-neutral-400">${p.brand || ''}</div>
-          <h3 class="text-lg font-semibold">${p.name || ''}</h3>
-          <div class="flex items-center justify-between pt-1">
-            <span class="font-bold">${Number.isFinite(p.priceCZK)?currency(p.priceCZK):'Na dotaz'}</span>
-            <div class="flex gap-2">
-              <button data-id="${p.id}" class="addBtn text-xs px-3 py-1.5 rounded-lg bg-emerald-500/90 hover:bg-emerald-500 text-neutral-900 font-semibold">Přidat</button>
-              <button data-detail="${p.id}" class="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20">Detail</button>
-            </div>
-          </div>
-        </div>
-      </article>
-    `).join('');
-
-    // nahrazení screenshotů reálnou fotkou
-    items.forEach(p=>{
-      const img = grid.querySelector(`img[data-id="${p.id}"]`);
-      if (img) upgradeImage(p).then(u=>{ if(u) img.src = u; });
-    });
-
-    grid.querySelectorAll('.addBtn').forEach(btn=>{ btn.onclick = () => addToBasket(btn.getAttribute('data-id')); });
-    grid.querySelectorAll('[data-detail]').forEach(el=>{ el.onclick = () => openDetail(el.getAttribute('data-detail')); });
-  }
-
-  function addToBasket(id, chosenSize){
-    const prod = state.items.find(x => String(x.id) === String(id));
-    if (!prod) return;
-    const key = id + (chosenSize?`@${chosenSize}`:'');
-    if (!state.basket.find(x => x.key===key)) state.basket.push({ key, ...prod, size: chosenSize||null, qty: 1 });
-    basketCount.textContent = String(state.basket.length);
-    renderBasket();
-  }
-
-  async function openDetail(id){
-    const p = state.items.find(x => String(x.id) === String(id));
-    if (!p) return;
-    state.current = p;
-
-    dBrand.textContent = p.brand || '';
-    dName.textContent = p.name || '';
-    dTitle.textContent = p.name || 'Detail';
-    dPrice.textContent = Number.isFinite(p.priceCZK)?currency(p.priceCZK):'Na dotaz';
-    dUrl.href = p.url || '#';
-
-    // galerie
-    const imgs = p.images && p.images.length ? p.images.slice(0,12) : (p.image?[p.image]:[]);
-    const mainSrc = await upgradeImage({ ...p, image: imgs[0]||p.image });
-    dImage.src = mainSrc || '';
-    const thumbs = (imgs[0]===mainSrc?imgs:([mainSrc,...imgs.filter(x=>x!==mainSrc)])).slice(0,12);
-    dThumbs.innerHTML = thumbs.map((src,i)=>`<img src="${src}" class="w-16 h-16 object-cover rounded-lg cursor-pointer border border-neutral-800" data-img="${i}">`).join('');
-    dThumbs.querySelectorAll('[data-img]').forEach(t=> t.onclick = ()=>{ dImage.src = thumbs[Number(t.getAttribute('data-img'))]; });
-
-    // velikosti
-    dSize.innerHTML = (p.sizes && p.sizes.length ? p.sizes : ['XS','S','M','L','XL']).map(s=>`<option>${s}</option>`).join('');
-
-    // tabulka velikostí
-    dSizesTbl.innerHTML = '<div class="p-3 text-neutral-400">Načítám…</div>';
-    const srcForSizes = p.sizeTableUrl || p.url;
-    if (srcForSizes){
-      const res = await fetchJSON(`/api/sizechart?url=${encodeURIComponent(srcForSizes)}&token=${encodeURIComponent(ACCESS_TOKEN)}`);
-      if (res?.html){
-        dSizesTbl.innerHTML = res.html;
-      } else if (Array.isArray(res?.rows)) {
-        const head = res.headers || [];
-        const rows = res.rows || [];
-        const th = head.map(h=>`<th class="px-2 py-1 border border-neutral-800">${h}</th>`).join('');
-        const tr = rows.map(r=>`<tr>${r.map(c=>`<td class=\"px-2 py-1 border border-neutral-800\">${c}</td>`).join('')}</tr>`).join('');
-        dSizesTbl.innerHTML = `<table class="min-w-full text-left">${head.length?`<thead><tr>${th}</tr></thead>`:''}<tbody>${tr}</tbody></table>`;
-      } else {
-        dSizesTbl.innerHTML = '<div class="p-3 text-neutral-400">Tabulka nedostupná.</div>';
-      }
-    } else {
-      dSizesTbl.innerHTML = '<div class="p-3 text-neutral-400">Tabulka nedostupná.</div>';
-    }
-
-    detail.classList.remove('hidden');
-    detail.classList.add('flex');
-  }
-
-  dClose.onclick = () => { detail.classList.add('hidden'); detail.classList.remove('flex'); };
-  dAdd.onclick = () => { if (!state.current) return; addToBasket(state.current.id, dSize.value); };
-
-  function renderBasket(){
-    if (!state.basket.length){
-      basketList.innerHTML = '<div class="text-neutral-400">Košík je prázdný.</div>';
-      return;
-    }
-    basketList.innerHTML = state.basket.map(it => `
-      <div class="flex items-center gap-3 p-2 rounded-xl bg-neutral-800 border border-neutral-700">
-        <img src="${it.image || ''}" class="w-14 h-14 object-cover rounded-lg" loading="lazy"/>
-        <div class="flex-1">
-          <div class="text-sm text-neutral-400">${it.brand || ''}</div>
-          <div>${it.name || ''}${it.size?` • ${it.size}`:''}</div>
-          <div>${Number.isFinite(it.priceCZK) ? currency(it.priceCZK) : 'Na dotaz'}</div>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  function buildMessage(){
-    const lines = [];
-    lines.push('*Poptávka – PodPultem*');
-    const contact = (contactField.value || '').trim();
-    if (contact) lines.push(`Kontakt: ${contact}`);
-    state.basket.forEach(it=>{
-      const price = Number.isFinite(it.priceCZK) ? currency(it.priceCZK) : 'Na dotaz';
-      lines.push(`• ${it.name} (${it.brand}) ${it.size?`[${it.size}]`:''} × ${it.qty} – ${price}`);
-      if (it.url) lines.push(`   ${it.url}`);
-    });
-    return lines.join('\n');
-
+function buildMessage(){
+  var lines=['*Poptávka – PodPultem*'];
+  var contact=(contactField.value||'').trim();
+  if(contact) lines.push('Kontakt: '+contact);
+  state.basket.forEach(function(it){
+    var price=Number.isFinite(it.priceCZK)?currency(it.priceCZK):'Na dotaz';
+    var sizeLabel= it.size ? '['+it.size+']' : '';
+    lines.push('• '+it.name+' ('+it.brand+') '+sizeLabel+' × '+it.qty+' – '+price);
+    if(it.url) lines.push('   '+it.url);
+  });
+  return lines.join('
 ');
+}
+
+function openDetail(id){
+  var p=state.items.find(function(x){return String(x.id)===String(id);});
+  if(!p) return;
+  state.current=p;
+  dBrand.textContent=p.brand||'';
+  dName.textContent=p.name||'';
+  dTitle.textContent=p.name||'Detail';
+  dPrice.textContent=Number.isFinite(p.priceCZK)?currency(p.priceCZK):'Na dotaz';
+  dUrl.href=p.url||'#';
+  var imgs=(p.images&&p.images.length?p.images:[p.image]).slice(0,12);
+  upgradeImage({url:p.url,image:imgs[0]}).then(function(src){ dImage.src=src||''; });
+  var thumbs='';
+  imgs.forEach(function(src,i){ thumbs+='<img src="'+src+'" class="w-16 h-16 object-cover rounded-lg cursor-pointer border border-neutral-800" data-img="'+i+'">'; });
+  dThumbs.innerHTML=thumbs;
+  Array.prototype.forEach.call(dThumbs.querySelectorAll('[data-img]'), function(t){ t.onclick=function(){ dImage.src=imgs[Number(t.getAttribute('data-img'))]; }; });
+  dSize.innerHTML=(p.sizes&&p.sizes.length?p.sizes:['XS','S','M','L','XL']).map(function(s){return '<option>'+s+'</option>';}).join('');
+  dSizesTbl.innerHTML='<div class="p-3 text-neutral-400">Načítám…</div>';
+  var srcForSizes=p.sizeTableUrl||p.url;
+  if(srcForSizes){
+    fetchJSON('/api/sizechart?url='+encodeURIComponent(srcForSizes)+'&token='+ACCESS_TOKEN).then(function(res){
+      if(res&&res.html){ dSizesTbl.innerHTML=res.html; }
+      else { dSizesTbl.innerHTML='<div class="p-3 text-neutral-400">Tabulka nedostupná.</div>'; }
+    });
   }
+  detail.classList.remove('hidden');
+  detail.classList.add('flex');
+}
 
-  // Start
-  (async () => {
-    try { state.items = await loadProductsFromRaindrop(); }
-    catch (e) { console.error('Raindrop API spadlo:', e); state.items = []; }
-    render();
-  })();
+dClose.onclick=function(){ detail.classList.add('hidden'); detail.classList.remove('flex'); };
+dAdd.onclick=function(){ if(!state.current) return; addToBasket(state.current.id, dSize.value); };
 
-  // Handlery
-  search.oninput  = (e)=>{ state.q = e.target.value; render(); };
-  sort.onchange   = (e)=>{ state.sort = e.target.value; render(); };
+// START
+(function(){
+  var ids=Object.values(RAINDROP_COLLECTIONS);
+  var out=[];
+  function next(i){
+    if(i>=ids.length){ state.items=out; render(); return; }
+    fetchJSON('/api/raindrop?collections='+encodeURIComponent(ids[i])+'&token='+ACCESS_TOKEN).then(function(data){
+      var arr=Array.isArray(data&&data.items)?data.items:(Array.isArray(data&&data.products)?data.products:[]);
+      arr.forEach(function(raw){ out.push(normalize(raw)); });
+      next(i+1);
+    });
+  }
+  next(0);
+})();
 
-  basketBtn.onclick = () => { drawer.style.transform = 'translateY(0)'; renderBasket(); };
-  closeDrawer.onclick = () => { drawer.style.transform = 'translateY(100%)'; };
+// HANDLERS
+search.oninput=function(e){ state.q=e.target.value; render(); };
+sort.onchange=function(e){ state.sort=e.target.value; render(); };
+basketBtn.onclick=function(){ drawer.style.transform='translateY(0)'; renderBasket(); };
+closeDrawer.onclick=function(){ drawer.style.transform='translateY(100%)'; };
+sendWA.onclick=function(){ var msg=encodeURIComponent(buildMessage()); window.open('https://wa.me/?text='+msg,'_blank'); };
+copyMsg.onclick=function(){ navigator.clipboard.writeText(buildMessage()).then(function(){ copyMsg.textContent='Zkopírováno ✓'; setTimeout(function(){ copyMsg.textContent='Zkopírovat zprávu'; },1500); }).catch(function(){ alert('Nepodařilo se zkopírovat.'); }); };
 
-  sendWA.onclick = () => { const msg = encodeURIComponent(buildMessage()); window.open(`https://wa.me/?text=${msg}`, '_blank'); };
-  copyMsg.onclick = async () => { try { await navigator.clipboard.writeText(buildMessage()); copyMsg.textContent = 'Zkopírováno ✓'; setTimeout(()=> copyMsg.textContent = 'Zkopírovat zprávu', 1500); } catch { alert('Nepodařilo se zkopírovat.'); } };
-
-  document.getElementById('year').textContent = new Date().getFullYear();
+document.getElementById('year').textContent=new Date().getFullYear();
 </script>
 </body>
 </html>
