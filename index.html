@@ -10,8 +10,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; base-uri 'none'; form-action 'self' https://wa.me; frame-ancestors 'none'; object-src 'none'; connect-src 'self' https:; img-src 'self' https: data:; script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
 </head>
 <body class="bg-neutral-950 text-neutral-100 min-h-screen">
-  <!-- Gate -->
-  <div id="gate" class="fixed inset-0 flex items-center justify-center bg-neutral-950 p-4 hidden">
+  <!-- Gate (necháme viditelný by default, JS ho schová po ověření) -->
+  <div id="gate" class="fixed inset-0 flex items-center justify-center bg-neutral-950 p-4">
     <div class="w-full max-w-md rounded-2xl bg-neutral-900 p-6 shadow-xl border border-neutral-800">
       <h1 class="text-2xl font-semibold mb-2">Vstup jen pro zasvěcené</h1>
       <p class="text-neutral-400 mb-4">Tenhle katalog je neveřejný. Otevře se jen s platným odkazem nebo heslem.</p>
@@ -100,19 +100,16 @@
     </div>
 
     <footer class="mt-10 text-center text-neutral-500 text-sm">
-      © <span id="year"></span> PodPultem • Neveřejný katalog • Vytvořeno s ♥️
+      © <span id="year"></span> PodPultem • Neveřejný katalog
     </footer>
   </div>
 
 <script>
   // ====== CONFIG ======
   const ACCESS_TOKEN = "shadow2025"; // heslo
-
-  // Přepočet ceny: ¥ → Kč × marže (+ případná doprava)
-  const FX = { CNY_TO_CZK: 3.2, MARKUP: 1.6, SHIPPING_CZK: 0 }; // uprav dle potřeby
+  const FX = { CNY_TO_CZK: 3.2, MARKUP: 1.6, SHIPPING_CZK: 0 }; // přepočet CNY→CZK
   const priceFromCNY = (cny) => Math.round((Number(cny||0) * FX.CNY_TO_CZK * FX.MARKUP + FX.SHIPPING_CZK) / 10) * 10;
 
-  // ID kolekcí z Raindropu (číselné ID z URL /collection/XXXX)
   const RAINDROP_COLLECTIONS = {
     "panska-tricka": "58913469",
     "mikiny": "58914294",
@@ -142,8 +139,8 @@
   const qs = new URLSearchParams(location.search);
   const fetchJSON = async (url) => { try { const r = await fetch(url); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json(); } catch(e){ console.warn('fetchJSON', url, e); return null; } };
   const currency = (n)=> new Intl.NumberFormat('cs-CZ', { style:'currency', currency:'CZK' }).format(n);
+  const isScreenshot = (u)=> /rdl\.ink\/render/i.test(String(u||''));
 
-  // Normalizace produktu z různých zdrojů
   function normalize(p){
     const images = Array.isArray(p.images) && p.images.length ? p.images : (p.image ? [p.image] : []);
     const url = p.url || p.link || p.source || null;
@@ -154,7 +151,6 @@
     return { id, name: p.name||p.title||'', brand: p.brand||'', tags: p.tags||[], images, image: images[0]||'', url, priceCNY, priceCZK, sizes, sizeTableUrl: p.sizeTableUrl||p.sizesUrl||null };
   }
 
-  // ====== DATA LOADERS ======
   async function loadProductsFromRaindrop(){
     const ids = Object.values(RAINDROP_COLLECTIONS);
     const out = [];
@@ -166,6 +162,16 @@
     return out;
   }
 
+  async function upgradeImage(p){
+    if (!p?.url || !isScreenshot(p.image)) return p.image;
+    try{
+      const r = await fetch(`/api/sizechart?url=${encodeURIComponent(p.url)}&token=${ACCESS_TOKEN}`);
+      const j = await r.json();
+      const real = (j.images||[]).find(x=>!isScreenshot(x));
+      return real || p.image;
+    }catch{ return p.image; }
+  }
+
   // ====== GATE / ACCESS ======
   const token = qs.get('t') || sessionStorage.getItem('ppt_token');
   const app = document.getElementById('app');
@@ -174,7 +180,7 @@
   const enterBtn = document.getElementById('enterBtn');
   const gateMsg = document.getElementById('gateMsg');
   function allowIn(){ gate.classList.add('hidden'); app.classList.remove('hidden'); }
-  if (token === ACCESS_TOKEN) { allowIn(); } else { gate.classList.remove('hidden'); }
+  if (token === ACCESS_TOKEN) { allowIn(); }
   enterBtn.addEventListener('click', ()=>{ if (passInput.value.trim() === ACCESS_TOKEN){ sessionStorage.setItem('ppt_token', ACCESS_TOKEN); allowIn(); } else gateMsg.classList.remove('hidden'); });
   passInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') enterBtn.click(); });
 
@@ -191,7 +197,6 @@
   const sendWA = document.getElementById('sendWA');
   const copyMsg = document.getElementById('copyMsg');
 
-  // detail modal
   const detail = document.getElementById('detail');
   const dClose = document.getElementById('dClose');
   const dTitle = document.getElementById('dTitle');
@@ -222,7 +227,7 @@
     grid.innerHTML = items.map(p => `
       <article class="rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow">
         <button class="w-full text-left" data-detail="${p.id}">
-          <div class="aspect-[4/3]"><img src="${p.image}" alt="${p.name}" loading="lazy" class="w-full h-full object-cover"/></div>
+          <div class="aspect-[4/3]"><img src="${p.image}" alt="${(p.name||'').replace(/"/g,'&quot;')}" loading="lazy" data-id="${p.id}" class="w-full h-full object-cover"/></div>
         </button>
         <div class="p-4">
           <div class="text-sm text-neutral-400">${p.brand || ''}</div>
@@ -238,13 +243,14 @@
       </article>
     `).join('');
 
-    // add handlers
-    grid.querySelectorAll('.addBtn').forEach(btn=>{
-      btn.onclick = () => { const id = btn.getAttribute('data-id'); addToBasket(id); };
+    // nahrazení screenshotů reálnou fotkou
+    items.forEach(p=>{
+      const img = grid.querySelector(`img[data-id="${p.id}"]`);
+      if (img) upgradeImage(p).then(u=>{ if(u) img.src = u; });
     });
-    grid.querySelectorAll('[data-detail]').forEach(el=>{
-      el.onclick = () => { const id = el.getAttribute('data-detail'); openDetail(id); };
-    });
+
+    grid.querySelectorAll('.addBtn').forEach(btn=>{ btn.onclick = () => addToBasket(btn.getAttribute('data-id')); });
+    grid.querySelectorAll('[data-detail]').forEach(el=>{ el.onclick = () => openDetail(el.getAttribute('data-detail')); });
   }
 
   function addToBasket(id, chosenSize){
@@ -260,30 +266,32 @@
     const p = state.items.find(x => String(x.id) === String(id));
     if (!p) return;
     state.current = p;
+
     dBrand.textContent = p.brand || '';
     dName.textContent = p.name || '';
     dTitle.textContent = p.name || 'Detail';
     dPrice.textContent = Number.isFinite(p.priceCZK)?currency(p.priceCZK):'Na dotaz';
     dUrl.href = p.url || '#';
 
-    // gallery
-    const imgs = p.images && p.images.length ? p.images : (p.image?[p.image]:[]);
-    dImage.src = imgs[0] || '';
-    dThumbs.innerHTML = imgs.map((src,i)=>`<img src="${src}" class="w-16 h-16 object-cover rounded-lg cursor-pointer border border-neutral-800" data-img="${i}">`).join('');
-    dThumbs.querySelectorAll('[data-img]').forEach(t=> t.onclick = ()=>{ dImage.src = imgs[Number(t.getAttribute('data-img'))]; });
+    // galerie
+    const imgs = p.images && p.images.length ? p.images.slice(0,12) : (p.image?[p.image]:[]);
+    const mainSrc = await upgradeImage({ ...p, image: imgs[0]||p.image });
+    dImage.src = mainSrc || '';
+    const thumbs = (imgs[0]===mainSrc?imgs:([mainSrc,...imgs.filter(x=>x!==mainSrc)])).slice(0,12);
+    dThumbs.innerHTML = thumbs.map((src,i)=>`<img src="${src}" class="w-16 h-16 object-cover rounded-lg cursor-pointer border border-neutral-800" data-img="${i}">`).join('');
+    dThumbs.querySelectorAll('[data-img]').forEach(t=> t.onclick = ()=>{ dImage.src = thumbs[Number(t.getAttribute('data-img'))]; });
 
-    // sizes select
+    // velikosti
     dSize.innerHTML = (p.sizes && p.sizes.length ? p.sizes : ['XS','S','M','L','XL']).map(s=>`<option>${s}</option>`).join('');
 
-    // size table fetch
+    // tabulka velikostí
     dSizesTbl.innerHTML = '<div class="p-3 text-neutral-400">Načítám…</div>';
     const srcForSizes = p.sizeTableUrl || p.url;
     if (srcForSizes){
       const res = await fetchJSON(`/api/sizechart?url=${encodeURIComponent(srcForSizes)}&token=${encodeURIComponent(ACCESS_TOKEN)}`);
       if (res?.html){
-        dSizesTbl.innerHTML = res.html; // očekáváme serverem očištěné <table>
+        dSizesTbl.innerHTML = res.html;
       } else if (Array.isArray(res?.rows)) {
-        // fallback z JSONu
         const head = res.headers || [];
         const rows = res.rows || [];
         const th = head.map(h=>`<th class="px-2 py-1 border border-neutral-800">${h}</th>`).join('');
@@ -332,24 +340,16 @@
     });
     return lines.join('
 ');
-  }`);
-    state.basket.forEach(it=>{
-      const price = Number.isFinite(it.priceCZK) ? currency(it.priceCZK) : 'Na dotaz';
-      lines.push(`• ${it.name} (${it.brand}) ${it.size?`[${it.size}]`:''} × ${it.qty} – ${price}`);
-      if (it.url) lines.push(`   ${it.url}`);
-    });
-    return lines.join('
-');
   }
 
-  // Start – načti z Raindropu a pak vyrenderuj
+  // Start
   (async () => {
     try { state.items = await loadProductsFromRaindrop(); }
     catch (e) { console.error('Raindrop API spadlo:', e); state.items = []; }
     render();
   })();
 
-  // ====== Handlery ======
+  // Handlery
   search.oninput  = (e)=>{ state.q = e.target.value; render(); };
   sort.onchange   = (e)=>{ state.sort = e.target.value; render(); };
 
@@ -363,6 +363,3 @@
 </script>
 </body>
 </html>
-
-
-
