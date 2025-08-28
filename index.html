@@ -10,36 +10,51 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; base-uri 'none'; form-action 'self' https://wa.me; frame-ancestors 'none'; object-src 'none'; connect-src 'self' https:; img-src 'self' https: data:; script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
 </head>
 <body class="bg-neutral-950 text-neutral-100 min-h-screen">
-  <!-- Gate (necháme viditelný by default, JS ho schová po ověření) -->
-  <div id="gate" class="fixed inset-0 flex items-center justify-center bg-neutral-950 p-4">
-    <div class="w-full max-w-md rounded-2xl bg-neutral-900 p-6 shadow-xl border border-neutral-800">
-      <h1 class="text-2xl font-semibold mb-2">Vstup jen pro zasvěcené</h1>
-      <p class="text-neutral-400 mb-4">Tenhle katalog je neveřejný. Otevře se jen s platným odkazem nebo heslem.</p>
-      <label class="block text-sm mb-2" for="pass">Heslo / token</label>
-      <input id="pass" type="password" class="w-full px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-500" placeholder="Zadej heslo" />
-      <button id="enterBtn" class="mt-4 w-full py-2 rounded-xl bg-white/10 hover:bg-white/20 transition">Vstoupit</button>
-      <p id="gateMsg" class="text-rose-400 text-sm mt-3 hidden">Neplatné heslo / token.</p>
-    </div>
+ <!-- GATE: začátek -->
+<div id="gate" class="fixed inset-0 flex items-center justify-center bg-neutral-950 p-4">
+  <div class="w-full max-w-md rounded-2xl bg-neutral-900 p-6 shadow-xl border border-neutral-800">
+    <h1 class="text-2xl font-semibold mb-2">Vstup jen pro zasvěcené</h1>
+    <p class="text-neutral-400 mb-4">Tenhle katalog je neveřejný. Otevře se jen s platným odkazem nebo heslem.</p>
+    <label class="block text-sm mb-2" for="pass">Heslo / token</label>
+    <input id="pass" type="password" class="w-full px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-500" placeholder="Zadej heslo" />
+    <button id="enterBtn" type="button" class="mt-4 w-full py-2 rounded-xl bg-white/10 hover:bg-white/20 transition">Vstoupit</button>
+    <p id="gateMsg" class="text-rose-400 text-sm mt-3 hidden">Neplatné heslo / token.</p>
   </div>
+</div>
 
-  <script>
-(()=>{ 
-  const ACCESS_TOKEN='shadow2025';
-  const qs=new URLSearchParams(location.search);
-  const gate=document.getElementById('gate');
-  const app=document.getElementById('app');
-  const pass=document.getElementById('pass');
-  const btn=document.getElementById('enterBtn');
-  const msg=document.getElementById('gateMsg');
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const ACCESS_TOKEN = 'shadow2025';
+  const qs = new URLSearchParams(location.search);
+  const gate = document.getElementById('gate');
+  const app  = document.getElementById('app');
+  const pass = document.getElementById('pass');
+  const btn  = document.getElementById('enterBtn');
+  const msg  = document.getElementById('gateMsg');
+
   function allow(){ gate.classList.add('hidden'); app.classList.remove('hidden'); }
-  if (qs.get('t')===ACCESS_TOKEN || sessionStorage.getItem('ppt_token')===ACCESS_TOKEN) allow();
-  btn.addEventListener('click', ()=>{
-    if ((pass.value||'').trim()===ACCESS_TOKEN){ sessionStorage.setItem('ppt_token', ACCESS_TOKEN); allow(); }
-    else msg.classList.remove('hidden');
-  });
-  pass.addEventListener('keydown', e=>{ if(e.key==='Enter') btn.click(); });
-})();
+  try {
+    if (qs.get('t') === ACCESS_TOKEN || sessionStorage.getItem('ppt_token') === ACCESS_TOKEN) {
+      allow();
+      return;
+    }
+    btn.addEventListener('click', function(){
+      const val = (pass.value || '').trim();
+      if (val === ACCESS_TOKEN){
+        sessionStorage.setItem('ppt_token', ACCESS_TOKEN);
+        allow();
+      } else {
+        msg.classList.remove('hidden');
+      }
+    });
+    pass.addEventListener('keydown', function(e){ if (e.key === 'Enter') btn.click(); });
+  } catch(e) {
+    // při chybě radši neblokovat UI
+    console.error('gate error', e);
+  }
+});
 </script>
+<!-- GATE: konec -->
 
   <!-- App -->
   <div id="app" class="max-w-6xl mx-auto p-4 md:p-8 hidden">
