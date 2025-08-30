@@ -3,37 +3,75 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PodPultem – Katalog</title>
+  <title>PodPultem – Soukromý katalog</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="Soukromý katalog produktů – přístup jen přes tajný odkaz." />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; img-src 'self' https: data:; script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
 </head>
 <body class="bg-neutral-950 text-neutral-100 min-h-screen">
+
   <div class="max-w-6xl mx-auto p-4 md:p-8">
-    <header class="flex items-end justify-between mb-6">
-      <h1 class="text-3xl md:text-4xl font-black tracking-tight">PodPultem</h1>
-      <input id="search" class="px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-800" placeholder="Hledat…">
+    <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-3xl md:text-4xl font-black tracking-tight">PodPultem</h1>
+        <p class="text-neutral-400">Soukromý katalog • přístup jen pro zasvěcené</p>
+      </div>
+      <input id="search" class="px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-800 focus:ring-2 focus:ring-neutral-600" placeholder="Hledat…">
     </header>
+
     <main id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></main>
   </div>
 
+  <!-- Detail Modal -->
+  <div id="detailModal" class="fixed inset-0 bg-black/70 hidden items-end sm:items-center justify-center p-0 sm:p-6 z-50">
+    <div class="w-full sm:max-w-2xl bg-neutral-900 border border-neutral-800 rounded-t-3xl sm:rounded-2xl overflow-hidden shadow-2xl">
+      <div class="flex items-center justify-between p-4 border-b border-neutral-800">
+        <h3 id="dTitle" class="text-lg font-semibold"></h3>
+        <button id="dClose" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20">Zavřít</button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-0 sm:gap-4 p-4">
+        <div class="aspect-[4/3] bg-neutral-800/50">
+          <img id="dImage" class="w-full h-full object-cover"/>
+        </div>
+        <div class="space-y-3">
+          <div class="text-neutral-400" id="dBrand"></div>
+          <div class="text-2xl font-bold" id="dPrice">Na dotaz</div>
+          <div id="dVariants" class="flex flex-wrap gap-2"></div>
+          <div id="dSizes" class="flex flex-wrap gap-2"></div>
+          <img id="dSizeChart" class="mt-2 rounded-xl border border-neutral-800 hidden"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
-  // Konst
-  var ACCESS_TOKEN='shadow2025';
-  var ALL="58913469,58914294,58961797,58938633,58991599,58914666,58914670,58914676,58914766,58915821,58915645,58915678,58937229,58930968,58959728,58961878,59011605,59011650,59011725,59020639,59036714,59036804";
-  var FX={ CNY_TO_CZK:3.2, MARKUP:1.6, SHIPPING_CZK:0 };
+  // ===== CONFIG =====
+  const ACCESS_TOKEN = "shadow2025";
+  const ALL = "58913469,58914294,58961797,58938633,58991599,58914666,58914670,58914676,58914766,58915821,58915645,58915678,58937229,58930968,58959728,58961878,59011605,59011650,59011725,59020639,59036714,59036804";
+
+  const FX = { CNY_TO_CZK: 3.2, MARKUP: 1.6, SHIPPING_CZK: 0 };
   function priceFromCNY(c){ return Math.round((Number(c||0)*FX.CNY_TO_CZK*FX.MARKUP+FX.SHIPPING_CZK)/10)*10; }
   function cur(n){ return new Intl.NumberFormat('cs-CZ',{style:'currency',currency:'CZK'}).format(n); }
+
   function norm(p){
     var img = (Array.isArray(p.images)&&p.images[0]) ? p.images[0] : (p.image||"");
     var cny = p.priceCNY!=null ? Number(p.priceCNY) : null;
     var czk = Number.isFinite(p.priceCZK) ? p.priceCZK : (cny!=null ? priceFromCNY(cny) : null);
-    return { id:p.id||p._id||p.url||Math.random(), name:p.name||p.title||"", brand:p.brand||"", image:img, url:p.url||p.link||"", priceCZK:czk };
+    return { 
+      id:p.id||p._id||p.url||Math.random(), 
+      name:p.name||p.title||"", 
+      brand:p.brand||"", 
+      image:img, 
+      url:p.url||p.link||"", 
+      priceCZK:czk 
+    };
   }
 
-  var state={items:[], q:""};
-  var grid=document.getElementById('grid');
-  var search=document.getElementById('search');
+  let state={items:[], q:""};
+  const grid=document.getElementById('grid');
+  const search=document.getElementById('search');
 
+  // ===== RENDER GRID =====
   function render(){
     var q=state.q.toLowerCase();
     var items=state.items.filter(function(p){
@@ -41,31 +79,97 @@
     });
     var html="";
     items.forEach(function(p){
-      html+= '<article class="rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow">'
-           +   '<div class="aspect-[4/3]"><img class="w-full h-full object-cover" loading="lazy" src="'+(p.image||'')+'" alt="'+(p.name||'')+'"></div>'
-           +   '<div class="p-4">'
-           +     '<div class="text-sm text-neutral-400">'+(p.brand||'')+'</div>'
-           +     '<h3 class="text-lg font-semibold">'+(p.name||'')+'</h3>'
-           +     '<div class="pt-1 font-bold">'+(Number.isFinite(p.priceCZK)?cur(p.priceCZK):'Na dotaz')+'</div>'
-           +   '</div>'
-           + '</article>';
+      html+= `<article data-id="${p.id}" class="cursor-pointer rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow hover:shadow-2xl transition">
+                <div class="aspect-[4/3]">
+                  <img class="w-full h-full object-cover" loading="lazy" src="${p.image||''}" alt="${p.name||''}">
+                </div>
+                <div class="p-4">
+                  <div class="text-sm text-neutral-400">${p.brand||''}</div>
+                  <h3 class="text-lg font-semibold">${p.name||''}</h3>
+                  <div class="pt-1 font-bold">${Number.isFinite(p.priceCZK)?cur(p.priceCZK):'Na dotaz'}</div>
+                </div>
+              </article>`;
     });
     grid.innerHTML = html || '<div class="text-neutral-400">Žádné produkty.</div>';
+
+    // Kliknutí na kartu = detail
+    grid.querySelectorAll('article[data-id]').forEach(card=>{
+      card.onclick = () => {
+        const id = card.getAttribute('data-id');
+        const prod = state.items.find(x => String(x.id) === String(id));
+        if (prod) openDetail(prod);
+      };
+    });
   }
 
-  // Jedno volání na API
+  // ===== LOAD PRODUCTS =====
   fetch('/api/raindrop?collections='+encodeURIComponent(ALL)+'&token='+ACCESS_TOKEN)
-    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-    .then(function(d){
+    .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(d=>{
       var arr = Array.isArray(d.products) ? d.products : (Array.isArray(d.items)?d.items:[]);
       state.items = arr.map(norm);
       render();
     })
-    .catch(function(e){
+    .catch(e=>{
       console.error(e);
       grid.innerHTML = '<div class="text-rose-400">Chyba načítání API.</div>';
     });
 
+  // ===== DETAIL =====
+  const detailModal=document.getElementById('detailModal');
+  const dTitle=document.getElementById('dTitle');
+  const dImage=document.getElementById('dImage');
+  const dBrand=document.getElementById('dBrand');
+  const dPrice=document.getElementById('dPrice');
+  const dVariants=document.getElementById('dVariants');
+  const dSizes=document.getElementById('dSizes');
+  const dSizeChart=document.getElementById('dSizeChart');
+  const dClose=document.getElementById('dClose');
+
+  async function fetchProductDetail(url){
+    const api = '/api/scrape?url='+encodeURIComponent(url)+'&token='+encodeURIComponent(ACCESS_TOKEN);
+    try {
+      const r=await fetch(api);
+      if(!r.ok) throw new Error('scrape fail');
+      return await r.json();
+    }catch(e){
+      console.warn('scrape error',e);
+      return {};
+    }
+  }
+
+  async function openDetail(prod){
+    dTitle.textContent=prod.name||'';
+    dImage.src=prod.image||'';
+    dBrand.textContent=prod.brand||'';
+    dPrice.textContent=Number.isFinite(prod.priceCZK)?cur(prod.priceCZK):'Na dotaz';
+    dVariants.innerHTML='';
+    dSizes.innerHTML='';
+    dSizeChart.classList.add('hidden');
+
+    detailModal.classList.remove('hidden');
+    detailModal.classList.add('flex');
+
+    if(prod.url){
+      const data=await fetchProductDetail(prod.url);
+      if(data.title) dTitle.textContent=data.title;
+      if(data.images&&data.images[0]) dImage.src=data.images[0];
+      if(Array.isArray(data.sizes)&&data.sizes.length){
+        dSizes.innerHTML = data.sizes.map(s=>`<span class="px-2 py-1 rounded-lg border border-neutral-700 bg-white/5 text-sm">${s}</span>`).join('');
+      }
+      if(data.sizeChartImage){
+        dSizeChart.src=data.sizeChartImage;
+        dSizeChart.classList.remove('hidden');
+      }
+      if(Number.isFinite(data.priceCZK)){
+        dPrice.textContent=cur(data.priceCZK);
+      }
+    }
+  }
+
+  dClose.onclick=()=>{ detailModal.classList.add('hidden'); detailModal.classList.remove('flex'); };
+
+  // ===== SEARCH =====
   search.oninput=function(e){ state.q=e.target.value; render(); };
 </script>
 </body>
